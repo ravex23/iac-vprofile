@@ -1,3 +1,48 @@
+name: "Vprofile IAC"
+
+on:
+  push:
+    branches: [main, stage]
+    paths:
+      - terraform/**
+      - .github/workflows/terraform.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - terraform/**
+      - .github/workflows/terraform.yml
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Terraform action to run"
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+concurrency:
+  group: terraform-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
+
+  # S3 bucket for the Terraform state (kept in GitHub Secrets)
+  BUCKET_TF_STATE: ${{ secrets.BUCKET_TF_STATE }}
+
+  # Region for AWS API calls
+  AWS_REGION: us-east-1
+  AWS_DEFAULT_REGION: us-east-1
+
+  # Cluster name used after apply
+  EKS_CLUSTER: vprofile-eks
+
 jobs:
   terraform_ci:
     name: "Terraform (fmt/validate/plan)"
