@@ -14,22 +14,7 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
 
   access_entries = {
-    # Allow EKS managed node groups to join the cluster
-    nodegroup = {
-      principal_arn = module.eks.eks_managed_node_groups["one"].iam_role_arn
-      type          = "EC2_LINUX"
-
-      policy_associations = {
-        worker = {
-          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSWorkerNodePolicy"
-          access_scope = {
-            type = "cluster"
-          }
-        }
-      }
-    }
-
-    # Allow GitHub Actions / your IAM user to access the cluster
+    # Human/admin access to the Kubernetes API (EKS Access API, v21+)
     admin = {
       principal_arn = data.aws_caller_identity.current.arn
       type          = "STANDARD"
