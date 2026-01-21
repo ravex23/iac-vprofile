@@ -10,40 +10,40 @@ module "eks" {
   subnet_ids             = module.vpc.private_subnets
   endpoint_public_access = true
 
-# Enable new EKS access management (v21+)
-enable_cluster_creator_admin_permissions = true
+  # Enable new EKS access management (v21+)
+  enable_cluster_creator_admin_permissions = true
 
-access_entries = {
-  # Allow EKS managed node groups to join the cluster
-  nodegroup = {
-    principal_arn = module.eks.eks_managed_node_groups["one"].iam_role_arn
-    type          = "EC2_LINUX"
+  access_entries = {
+    # Allow EKS managed node groups to join the cluster
+    nodegroup = {
+      principal_arn = module.eks.eks_managed_node_groups["one"].iam_role_arn
+      type          = "EC2_LINUX"
 
-    policy_associations = {
-      worker = {
-        policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSWorkerNodePolicy"
-        access_scope = {
-          type = "cluster"
+      policy_associations = {
+        worker = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSWorkerNodePolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
+
+    # Allow GitHub Actions / your IAM user to access the cluster
+    admin = {
+      principal_arn = data.aws_caller_identity.current.arn
+      type          = "STANDARD"
+
+      policy_associations = {
+        admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
         }
       }
     }
   }
-
-  # Allow GitHub Actions / your IAM user to access the cluster
-  admin = {
-    principal_arn = data.aws_caller_identity.current.arn
-    type          = "STANDARD"
-
-    policy_associations = {
-      admin = {
-        policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-        access_scope = {
-          type = "cluster"
-        }
-      }
-    }
-  }
-}
 
   # EKS Managed Node Group(s)
   eks_managed_node_groups = {
