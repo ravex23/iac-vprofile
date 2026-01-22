@@ -14,6 +14,27 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
   authentication_mode                      = "API_AND_CONFIG_MAP"
 
+  # EKS add-ons (recommended by module docs). Using before_compute ensures
+  # critical networking components are ready before node groups are created.
+  addons = {
+    coredns = {}
+
+    kube-proxy = {}
+
+    vpc-cni = {
+      before_compute = true
+    }
+
+    eks-pod-identity-agent = {
+      before_compute = true
+    }
+  }
+
+  tags = {
+    Environment = "dev"
+    Terraform   = "true"
+  }
+
   access_entries = {
     # Human/admin access to the Kubernetes API (EKS Access API, v21+)
     admin = {
