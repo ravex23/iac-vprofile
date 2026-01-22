@@ -10,6 +10,27 @@ module "eks" {
   subnet_ids             = module.vpc.private_subnets
   endpoint_public_access = true
 
+  # Enable new EKS access management (v21+)
+  enable_cluster_creator_admin_permissions = true
+  authentication_mode                      = "API_AND_CONFIG_MAP"
+
+  access_entries = {
+    # Human/admin access to the Kubernetes API (EKS Access API, v21+)
+    admin = {
+      principal_arn = "arn:aws:iam::182399705651:user/gitops"
+      type          = "STANDARD"
+
+      policy_associations = {
+        admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
+  }
+
   # EKS Managed Node Group(s)
   eks_managed_node_groups = {
     one = {
