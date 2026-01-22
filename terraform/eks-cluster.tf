@@ -14,9 +14,53 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
 
   access_entries = {
+    # Allow EKS managed node groups to join the cluster (EKS Access API, v21+)
+    nodegroup_one = {
+      principal_arn = module.eks.eks_managed_node_groups["one"].iam_role_arn
+      type          = "EC2_LINUX"
+
+      policy_associations = {
+        worker = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSWorkerNodePolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
+
+    nodegroup_two = {
+      principal_arn = module.eks.eks_managed_node_groups["two"].iam_role_arn
+      type          = "EC2_LINUX"
+
+      policy_associations = {
+        worker = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSWorkerNodePolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
+
     # Human/admin access to the Kubernetes API (EKS Access API, v21+)
     admin = {
-      principal_arn = data.aws_caller_identity.current.arn
+      principal_arn = "arn:aws:iam::182399705651:user/gitops"
+      type          = "STANDARD"
+
+      policy_associations = {
+        admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
+
+    # AWS Console / account root access (so the current console principal can view Kubernetes objects)
+    root_admin = {
+      principal_arn = "arn:aws:iam::182399705651:root"
       type          = "STANDARD"
 
       policy_associations = {
