@@ -11,13 +11,23 @@ module "eks" {
   endpoint_public_access = true
 
   # Enable new EKS access management (v21+)
-  enable_cluster_creator_admin_permissions = true
-  authentication_mode                      = "API_AND_CONFIG_MAP"
+  authentication_mode = "API_AND_CONFIG_MAP"
+
+  # IMPORTANT: Prevent the module from creating a separate "cluster_creator" access entry
+  # for the Terraform caller identity (GitHub Actions). We manage access explicitly below
+  # via `access_entries`.
+  enable_cluster_creator_admin_permissions = false
 
   # EKS add-ons (recommended by module docs). Using before_compute ensures
   # critical networking components are ready before node groups are created.
   addons = {
-    coredns = {}
+    coredns = {
+      timeouts = {
+        create = "40m"
+        update = "40m"
+        delete = "40m"
+      }
+    }
 
     kube-proxy = {}
 
